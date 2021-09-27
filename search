@@ -19,9 +19,9 @@ search(){
     then
     elif [ $(echo "$SEARCH" | wc -w) = 1 ];
     then
-	if echo "$QUICKMARK" | awk '{print $1}' | grep "$SEARCH";
+	if echo "$QUICKMARK" | awk '{print $1}' | grep "^$SEARCH ";
 	then
-	    URL=$(echo "$QUICKMARK" | grep -Po "$SEARCH \K.*");
+	    URL=$(echo "$QUICKMARK" | grep -Po "^$SEARCH \K.*");
 	    $BROWSER $URL;
 	else
 	    if [ "$($HOME/.scripts/rofi/rofi-search/url.js $SEARCH)" = "true" ];
@@ -36,19 +36,21 @@ search(){
 	fi
     elif echo "$QUICKMARK" | grep "$SEARCH";
     then
-	echo "1"
 	URL=$(echo "$SEARCH" | cut -d " " -f 2-)
 	$BROWSER $URL;
     else
 	POSSIBLEENGINE=$(echo "$SEARCH" | awk '{print $1}')
-	if echo "$SEARCHENGINE" | awk '{print $1}' | grep "$POSSIBLEENGINE";
+	if echo "$SEARCHENGINE" | awk '{print $1}' | grep "^$POSSIBLEENGINE ";
 	then
-	    ENGINE=$(echo "$SEARCHENGINE" | grep "^$POSSIBLEENGINE" | grep -Po "^.* \K.*")
+	    ENGINE=$(echo "$SEARCHENGINE" | grep "^$POSSIBLEENGINE " | grep -Po "^.* \K.*")
 	    SEARCH=$(echo "$SEARCH" | cut -d " " -f 2-)
 	    URL=$(echo $ENGINE | sed "s/{}/$SEARCH/g")
 	    $BROWSER $URL;
 	else
-	    $BROWSER $SEARCH
+	    ENGINE=$(echo "$SEARCHENGINE" | grep "^DEFAULT " | grep -Po "^.* \K.*")
+	    echo "$ENGINE"
+	    URL=$(echo $ENGINE | sed "s/{}/$SEARCH/g")
+	    $BROWSER $URL;
 	fi
 
     fi
