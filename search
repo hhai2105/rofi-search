@@ -63,17 +63,19 @@ addquickmark(){
     do 
     VALUE=$(rofi -dmenu -p "invalid: 'shortcut' 'link'")
     done
-    CURRENT=$(cat quickmark | head -n -1 | tail -n +2)
+    CURRENT=$(cat $QUICKMARKFILE | head -n -1 | tail -n +2)
     CURRENT=$(echo "$CURRENT\n$VALUE" | sort)
     echo $CURRENT;
-    echo 'QUICKMARK="' > ~/.scripts/rofi/rofi-search/quickmark
-    echo "$CURRENT" >> ~/.scripts/rofi/rofi-search/quickmark
-    echo '"' >> ~/.scripts/rofi/rofi-search/quickmark
+    echo 'QUICKMARK="' > $QUICKMARKFILE
+    echo "$CURRENT" >> $QUICKMARKFILE
+    echo '"' >> $QUICKMARKFILE
 }
 
 deletequickmark(){
-    MARK=$(cat quickmark | head -n -1 | tail -n +2)
-    VALUE=$(echo "$MARK")
+    MARK=$(cat $QUICKMARKFILE | head -n -1 | tail -n +2)
+    VALUE=$(echo "$MARK" | rofi -dmenu -p "quickmark")
+    NEWLIST=$(sed "/$VALUE/d" $QUICKMARKFILE)
+    echo "$NEWLIST" > $QUICKMARKFILE
 }
 
 quickmark(){
@@ -92,7 +94,7 @@ case $1 in
     search)
 	search
 	;;
-    addquickmark)
+    quickmark)
 	quickmark
 	;;
 esac
