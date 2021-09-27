@@ -19,8 +19,9 @@ search(){
     then
     elif [ $(echo "$SEARCH" | wc -w) = 1 ];
     then
-	if echo "$QUICKMARK" | awk '{print $1}' | grep "^$SEARCH ";
+	if echo "$QUICKMARK" | grep -P "^$SEARCH ";
 	then
+	    echo "1"
 	    URL=$(echo "$QUICKMARK" | grep -Po "^$SEARCH \K.*");
 	    $BROWSER $URL;
 	else
