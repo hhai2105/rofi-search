@@ -1,0 +1,95 @@
+#!/usr/bin/env zsh
+set -euo pipefail
+
+BROWSER="brave"
+LIST=""
+SEARCHENGINEFILE="$HOME/.config/rofi-search/searchengine"
+QUICKMARKFILE="$HOME/.config/rofi-search/quickmark"
+source $SEARCHENGINEFILE
+source $QUICKMARKFILE
+
+genList(){
+    LIST="$(echo "-----Quickmark-----")$QUICKMARK$(echo "-----Search Engine-----")$SEARCHENGINE"
+}
+
+search(){
+    genList;
+    SEARCH=$(echo "$LIST" | rofi -dmenu -kb-accept-entry "Control-Return" -kb-accept-custom "Return" -p "Search" | sed 's/ *$//g');
+    if [ $(echo "$SEARCH" | wc -w) = 0 ];
+    then
+    elif [ $(echo "$SEARCH" | wc -w) = 1 ];
+    then
+	if echo "$QUICKMARK" | awk '{print $1}' | grep "$SEARCH";
+	then
+	    URL=$(echo "$QUICKMARK" | grep -Po "$SEARCH \K.*");
+	    $BROWSER $URL;
+	else
+	    if [ "$($HOME/.scripts/rofi/rofi-search/url.js $SEARCH)" = "true" ];
+	    then
+		$BROWSER $SEARCH;
+	    else
+		ENGINE=$(echo "$SEARCHENGINE" | grep "^DEFAULT" | grep -Po "^.* \K.*")
+		echo "$ENGINE"
+		URL=$(echo $ENGINE | sed "s/{}/$SEARCH/g")
+		$BROWSER $URL;
+	    fi
+	fi
+    elif echo "$QUICKMARK" | grep "$SEARCH";
+    then
+	echo "1"
+	URL=$(echo "$SEARCH" | cut -d " " -f 2-)
+	$BROWSER $URL;
+    else
+	POSSIBLEENGINE=$(echo "$SEARCH" | awk '{print $1}')
+	if echo "$SEARCHENGINE" | awk '{print $1}' | grep "$POSSIBLEENGINE";
+	then
+	    ENGINE=$(echo "$SEARCHENGINE" | grep "^$POSSIBLEENGINE" | grep -Po "^.* \K.*")
+	    SEARCH=$(echo "$SEARCH" | cut -d " " -f 2-)
+	    URL=$(echo $ENGINE | sed "s/{}/$SEARCH/g")
+	    $BROWSER $URL;
+	else
+	    $BROWSER $SEARCH
+	fi
+
+    fi
+}
+
+addquickmark(){
+    VALUE=$(rofi -dmenu -p "quickmark: 'shortcut' 'link'")
+    while [ $(echo "$VALUE" | wc -w) -le 1 ];
+    do 
+    VALUE=$(rofi -dmenu -p "invalid: 'shortcut' 'link'")
+    done
+    CURRENT=$(cat quickmark | head -n -1 | tail -n +2)
+    CURRENT=$(echo "$CURRENT\n$VALUE" | sort)
+    echo $CURRENT;
+    echo 'QUICKMARK="' > ~/.scripts/rofi/rofi-search/quickmark
+    echo "$CURRENT" >> ~/.scripts/rofi/rofi-search/quickmark
+    echo '"' >> ~/.scripts/rofi/rofi-search/quickmark
+}
+
+deletequickmark(){
+    MARK=$(cat quickmark | head -n -1 | tail -n +2)
+    VALUE=$(echo "$MARK")
+}
+
+quickmark(){
+    OPTION=$(echo "add\ndelete" | rofi -dmenu -p "Options")
+    case $OPTION in
+	add)
+	    addquickmark
+	    ;;
+	delete)
+	    deletequickmark
+	    ;;
+    esac
+}
+
+case $1 in
+    search)
+	search
+	;;
+    addquickmark)
+	quickmark
+	;;
+esac
