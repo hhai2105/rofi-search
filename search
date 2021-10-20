@@ -29,19 +29,18 @@ search(){
 		$BROWSER $SEARCH;
 	    else
 		ENGINE=$(echo "$SEARCHENGINE" | grep "^DEFAULT" | grep -Po "^.* \K.*")
-		echo "$ENGINE"
 		URL=$(echo $ENGINE | sed "s/{}/$SEARCH/g")
 		$BROWSER $URL;
 	    fi
 	fi
     else
 	POSSIBLEENGINE=$(echo "$SEARCH" | awk '{print $1}')
-	echo "$POSSIBLEENGINE"
 	if echo "$SEARCHENGINE" | grep "^$POSSIBLEENGINE ";
 	then
 	    echo "engine"
 	    ENGINE=$(echo "$SEARCHENGINE" | grep "^$POSSIBLEENGINE " | grep -Po "^.* \K.*")
 	    SEARCH=$(echo "$SEARCH" | cut -d " " -f 2-)
+		SEARCH=$(echo "${SEARCH//\//\\\/}")
 	    URL=$(echo $ENGINE | sed "s/{}/$SEARCH/g")
 	    $BROWSER $URL;
 	else
@@ -70,7 +69,7 @@ addquickmark(){
 deletequickmark(){
     MARK=$(cat $QUICKMARKFILE | head -n -1 | tail -n +2)
     VALUE=$(echo "$MARK" | rofi -dmenu -p "quickmark")
-    NEWLIST=$(sed "/$VALUE/d" $QUICKMARKFILE)
+    NEWLIST=$(sed "$VALUE/d" $QUICKMARKFILE)
     echo "$NEWLIST" > $QUICKMARKFILE
 }
 
